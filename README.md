@@ -1,5 +1,4 @@
-rbase
-======
+<img src="https://github.com/milostosic/milostosic.github.io/raw/master/logo_libs/rbase.png"/>
 
 [![Build Status](https://travis-ci.org/milostosic/rbase.svg?branch=master)](https://travis-ci.org/milostosic/rbase)
 [![Build status](https://ci.appveyor.com/api/projects/status/u0c3l72vgi86f72l?svg=true)](https://ci.appveyor.com/project/milostosic/rbase)
@@ -25,7 +24,7 @@ Author
 ======
 
 The author of **rbase** is Milos Tosic  
-[ <img src="https://github.com/milostosic/build/blob/master/img/twitter.png">](https://twitter.com/milostosic)[ <img src="https://github.com/milostosic/build/blob/master/img/linkedin.png">](https://www.linkedin.com/in/milostosic/)[ <img src="https://github.com/milostosic/build/blob/master/img/mail.png">](mailto:milostosic77@gmail.com)  
+[ <img src="https://github.com/milostosic/build/raw/gh-pages/images/twitter.png">](https://twitter.com/milostosic)[ <img src="https://github.com/milostosic/build/raw/gh-pages/images/mail.png">](mailto:milostosic77@gmail.com)  
 
 License (BSD 2-clause)
 ======
@@ -34,7 +33,7 @@ License (BSD 2-clause)
 <img align="right" src="http://opensource.org/trademarks/opensource/OSI-Approved-License-100x137.png">
 </a>
 
-	Copyright (c) 2017 Milos Tosic. All rights reserved.
+	Copyright (c) 2018 Milos Tosic. All rights reserved.
 	
 	https://github.com/milostosic/rbase
 	

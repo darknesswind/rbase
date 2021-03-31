@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -12,7 +12,7 @@
 	#include <windows.h>
 #endif // RTM_PLATFORM_WINDOWS
 
-#if RTM_PLATFORM_ANDROID || RTM_PLATFORM_LINUX
+#if RTM_PLATFORM_POSIX
 	#include <pthread.h>
 #endif
 
@@ -45,7 +45,7 @@ namespace rtm {
 		LeaveCriticalSection(_mutex);
 	}
 
-#elif RTM_PLATFORM_LINUX || RTM_PLATFORM_OSX || RTM_PLATFORM_ANDROID
+#elif RTM_PLATFORM_POSIX
 	typedef pthread_mutex_t rtm_mutex;
 
 	static inline void rtm_mutex_init(rtm_mutex* _mutex) {
@@ -102,8 +102,8 @@ namespace rtm {
 	{
 		rtm_mutex m_mutex;
 
-		Mutex(const Mutex& _rhs);
-		Mutex& operator=(const Mutex& _rhs);
+		Mutex(const Mutex& _rhs) = delete;
+		Mutex& operator=(const Mutex& _rhs) = delete;
 		
 	public:
 
@@ -138,9 +138,9 @@ namespace rtm {
 	{
 		Mutex& m_mutex;
 
-		ScopedMutexLocker();
-		ScopedMutexLocker(const ScopedMutexLocker&);
-		ScopedMutexLocker& operator = (const ScopedMutexLocker&);
+		ScopedMutexLocker() = delete;
+		ScopedMutexLocker(const ScopedMutexLocker&) = delete;
+		ScopedMutexLocker& operator = (const ScopedMutexLocker&) = delete;
 
 	public:
 

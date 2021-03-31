@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2017 Milos Tosic. All Rights Reserved.                   ///
+/// Copyright (c) 2019 Milos Tosic. All Rights Reserved.                   ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -7,6 +7,7 @@
 #define RTM_RBASE_QUEUE_H
 
 #include <atomic>
+#include <rbase/inc/libhandler.h>
 
 namespace rtm {
 

@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -7,67 +7,136 @@
 #define RTM_RBASE_CONSOLE_H
 
 #include <rbase/inc/platform.h>
+#include <rbase/inc/stringfn.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <time.h>
 
 #if RTM_PLATFORM_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
 
+#define RTM_CONSOLE_TEMP_BUFFER_SIZE	512
+#define RTM_CONSOLE_ENABLE_ANSI			1
+
+#if RTM_PLATFORM_WINDOWS
+#if (_WIN32_WINNT < 0x0603)
+#undef	RTM_WINDOWS_CONSOLE
+#define	RTM_WINDOWS_CONSOLE 1
+#endif
+#endif
+
 namespace rtm {
 
 	class Console
 	{
-		enum MsgColor
-		{ 
-			MSG_RED		= 0x1,
-			MSG_GREEN	= 0x2,
-			MSG_BLUE	= 0x4,
-			MSG_LIGHT	= 0x8,
+		static char* itoaf(char* _buffer, uint8_t _val)
+		{
+			int numDigits = 0;
+			char digits[3];
 
-			MSG_WHITE = MSG_RED | MSG_GREEN | MSG_BLUE
-		};
+			while (_val)
+			{
+				digits[numDigits++] = '0' + (_val % 10);
+				_val /= 10;
+			}
 
-		static void vprintf(uint32_t _color, const char* _format, va_list& _args)
+			if (numDigits)
+			{
+				for (int i = numDigits - 1; i >= 0; --i)
+					*_buffer++ = digits[i];
+			}
+			else
+				*_buffer++ = '0';
+			*_buffer++ = ';';
+			return _buffer;
+		}
+
+		static inline char* setColor(char* _buffer, uint32_t _buffSize, uint8_t _r, uint8_t _g, uint8_t _b)
+		{
+#if !RTM_CONSOLE_ENABLE_ANSI
+			RTM_UNUSED_4(_buffSize, _r, _g, _b);
+			return _buffer;
+#else
+			RTM_ASSERT(_buffSize >= 32, "");
+			rtm::strlCat(_buffer, _buffSize, "\x1b[38;2;");
+			char* b = itoaf(&_buffer[7], _r);
+			b = itoaf(b, _g);
+			b = itoaf(b, _b);
+			b[-1] = 'm';
+			b[0] = '\0';
+			return b;
+#endif
+		}
+
+		static inline void restoreColor(char* _buffer, uint32_t _buffSize)
+		{
+#if !RTM_CONSOLE_ENABLE_ANSI
+			RTM_UNUSED_2(_buffer, _buffSize);
+#else
+			rtm::strlCat(_buffer, _buffSize, "\x1b[0m");
+#endif
+		}
+
+		static inline void printf(const char* _str)
+		{
+#if RTM_PLATFORM_WINDOWS
+			HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+			static bool ansiModeSet = false;
+			if (!ansiModeSet)
+			{
+				ansiModeSet = true;
+				DWORD dwMode = 0;
+				GetConsoleMode(console, &dwMode);
+				dwMode |= 0x0004;//ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+				SetConsoleMode(console, dwMode);
+			}
+			DWORD written = 0;
+			if (INVALID_HANDLE_VALUE != console)
+				WriteFile(console, _str, (DWORD)strlen(_str), &written, NULL);
+#else
+			::printf("%s", _str);
+#endif
+		}
+
+		static inline void vprintf(const char* _format, va_list& _args)
 		{
 			char buffer[8192];
 			vsprintf(buffer, _format, _args);
+			Console::printf(buffer);
+		}
 
-#if RTM_PLATFORM_WINDOWS
-			HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-			if (INVALID_HANDLE_VALUE != console)
-			{
-				DWORD att = 0;
-				if (_color & MSG_RED)	att |= FOREGROUND_RED;
-				if (_color & MSG_GREEN)	att |= FOREGROUND_GREEN;
-				if (_color & MSG_BLUE)	att |= FOREGROUND_BLUE;
-				if (_color & MSG_LIGHT)	att |= FOREGROUND_INTENSITY;
+		static char* printTime(char* buffer)
+		{
+			time_t t = time(NULL);
+			struct tm *lt = localtime(&t);
+			size_t len = strftime(buffer, RTM_CONSOLE_TEMP_BUFFER_SIZE, "%H:%M:%S", lt);
+			buffer[len + 0] = ' ';
+			buffer[len + 1] = '\0';
+			return &buffer[len + 1];
+		}
 
-				SetConsoleTextAttribute(console, (WORD)att);	
-				DWORD written;
-				WriteFile(console, buffer, (DWORD)strlen(buffer), &written, NULL);
-				att = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-				SetConsoleTextAttribute(console, (WORD)att);	
-			}
-#else
-			RTM_UNUSED(_color);
-			printf("%s\n",buffer);
-#endif
+		static void	rgbInternal(uint8_t _r, uint8_t _g, uint8_t _b, const char* _prepend, const char* _format, va_list& _args)
+		{
+			char buffer[RTM_CONSOLE_TEMP_BUFFER_SIZE];
+			char* append = Console::printTime(buffer);
+			uint32_t remainder = RTM_CONSOLE_TEMP_BUFFER_SIZE - uint32_t(append - buffer);
+			append = setColor(append, remainder, _r, _g, _b);
+			remainder = RTM_CONSOLE_TEMP_BUFFER_SIZE - uint32_t(append - buffer);
+			rtm::strlCpy(append, remainder, _prepend);
+			rtm::strlCat(append, remainder, _format);
+			restoreColor(append, remainder);
+			Console::vprintf(buffer, _args);
 		}
 
 	public:
 
-		static void	custom(int _r, int _g, int _b, int _hl, const char* _format, ...)
+		static void	rgb(uint8_t _r, uint8_t _g, uint8_t _b, const char* _format, ...)
 		{
 			va_list args;
 			va_start(args, _format);
-			uint32_t col = 0;
-			col |= _r  ? MSG_RED   : 0;
-			col |= _g  ? MSG_GREEN : 0;
-			col |= _b  ? MSG_BLUE  : 0;
-			col |= _hl ? MSG_LIGHT : 0;
-			Console::vprintf(col, _format, args);
+			rgbInternal(_r, _g, _b, "", _format, args);
 			va_end(args);
 		}
 
@@ -75,7 +144,7 @@ namespace rtm {
 		{
 			va_list args;
 			va_start(args, _format);
-			Console::vprintf(MSG_RED | MSG_GREEN | MSG_BLUE, _format, args);
+			rgbInternal(0, 192, 0, "INFO  ", _format, args);
 			va_end(args);
 		}
 
@@ -83,7 +152,7 @@ namespace rtm {
 		{
 			va_list args;
 			va_start(args, _format);
-			Console::vprintf(MSG_LIGHT | MSG_GREEN | MSG_BLUE, _format, args);
+			rgbInternal(0, 192, 192, "DEBUG ", _format, args);
 			va_end(args);
 		}
 
@@ -91,7 +160,7 @@ namespace rtm {
 		{
 			va_list args;
 			va_start(args, _format);
-			Console::vprintf(MSG_RED | MSG_GREEN | MSG_LIGHT, _format, args);
+			rgbInternal(224, 224, 0, "WARN  ", _format, args);
 			va_end(args);
 		}
 
@@ -99,7 +168,7 @@ namespace rtm {
 		{
 			va_list args;
 			va_start(args, _format);
-			Console::vprintf(MSG_RED | MSG_LIGHT, _format, args);
+			rgb(255, 0, 0, "ERROR ", _format, args);
 			va_end(args);
 		}
 	};

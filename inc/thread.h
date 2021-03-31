@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -172,7 +172,7 @@ namespace rtm {
 			sys_ppu_thread_t tid;
 			sys_ppu_thread_get_id(&tid);
 			return (uint64_t)tid;
-#elif RTM_PLATFORM_ANDROID
+#elif RTM_PLATFORM_ANDROID || RTM_PLATFORM_EMSCRIPTEN || RTM_PLATFORM_SWITCH
 			return pthread_self();
 #else
 			#error "Undefined platform!"
@@ -182,7 +182,7 @@ namespace rtm {
 		static inline void sleep(uint32_t _ms)
 		{
 #if RTM_PLATFORM_WINDOWS || RTM_PLATFORM_XBOXONE || RTM_PLATFORM_WINRT
-			Sleep(_ms);
+			::Sleep(_ms);
 #else
 			timespec req = {(time_t)_ms/1000, (long)((_ms%1000)*1000000)};
 			timespec rem = {0, 0};
@@ -196,7 +196,7 @@ namespace rtm {
 			::SwitchToThread();
 #elif RTM_PLATFORM_WINRT
 			RTM_ERROR("yield not implemented!");
-#elif RTM_PLATFORM_ANDROID || RTM_PLATFORM_LINUX || RTM_PLATFORM_OSX
+#elif RTM_PLATFORM_ANDROID || RTM_PLATFORM_LINUX || RTM_PLATFORM_OSX || RTM_PLATFORM_EMSCRIPTEN || RTM_PLATFORM_SWITCH
 			::sched_yield();
 #elif RTM_PLATFORM_PS4
 			scePthreadYield();

@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 /// Taken from bx library: https://github.com/bkaradzic/bx                 ///
@@ -21,7 +21,12 @@ namespace rtm {
 
 	public:
 
-		CommandLine(int _argc, const char* _argv[]) : 
+		CommandLine(int _argc, const char* const* _argv) :
+			m_argc(_argc), m_argv(_argv)
+		{
+		}
+
+		CommandLine(int _argc, const char* _argv[]) :
 			m_argc(_argc), m_argv(_argv)
 		{
 		}

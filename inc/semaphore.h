@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -12,7 +12,7 @@
 	#include <windows.h>
 	#include <winbase.h>
 #elif RTM_PLATFORM_POSIX
-	#include <errno.h>
+	//#include <errno.h>
 	#include <semaphore.h>
 	#include <time.h>
 	#include <pthread.h>

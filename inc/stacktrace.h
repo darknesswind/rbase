@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -108,7 +108,11 @@ namespace rtm {
 	}
 
 #else
-	#error "Unsupported platform!"
+	static inline uint32_t getStackTrace(void* _traces[], uint32_t _numFrames, uint32_t _skip)
+	{
+		RTM_UNUSED_3(_traces, _numFrames, _skip);
+		return 0;
+	}
 #endif
 
 } // namespace rtm

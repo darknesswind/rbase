@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -24,6 +24,8 @@
 	#include <sys/sys_time.h>
 #elif RTM_PLATFORM_ANDROID
 	#include <time.h>
+#elif RTM_PLATFORM_EMSCRIPTEN
+	#include <emscripten.h>
 #else
 	#include <sys/time.h>
 #endif
@@ -43,7 +45,9 @@ namespace rtm {
 #elif RTM_PLATFORM_PS4
 			int64_t q = sceKernelReadTsc();
 #elif RTM_PLATFORM_ANDROID
-			int64_t q = clock();
+			int64_t q = ::clock();
+#elif RTM_PLATFORM_EMSCRIPTEN
+			int64_t q = (int64_t)(emscripten_get_now() * 1000.0);
 #else
 			struct timeval now;
 			gettimeofday(&now, 0);

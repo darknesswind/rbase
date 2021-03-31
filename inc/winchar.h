@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -15,25 +15,29 @@ namespace rtm {
 	{
 		static const int S_ON_STACK_SIZE = 1024;
 		wchar_t		m_string[S_ON_STACK_SIZE];
+		uint32_t	m_size;
 
 	public:
 		wchar_t*	m_ptr;
 
 		MultiToWide(const char* _string, bool _path = true);
 		~MultiToWide();
+		inline uint32_t size() const { return m_size; }
 		operator wchar_t* () { return m_ptr; }
 	};
 
 	class WideToMulti
 	{
 		static const int S_ON_STACK_SIZE = 1024;
-		char	m_string[S_ON_STACK_SIZE];
+		char		m_string[S_ON_STACK_SIZE];
+		uint32_t	m_size;
 
 	public:
 		char*	m_ptr;
 
 		WideToMulti(const wchar_t* _string);
 		~WideToMulti();
+		inline uint32_t size() const { return m_size; }
 		operator char* () { return m_ptr; }
 	};
 #endif // RTM_PLATFORM_WINDOWS

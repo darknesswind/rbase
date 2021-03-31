@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -20,8 +20,9 @@
 #define RTM_PLATFORM_PS3		0
 #define RTM_PLATFORM_PS4		0
 #define RTM_PLATFORM_ANDROID	0
-#define RTM_PLATFORM_XBOX360	0
 #define RTM_PLATFORM_XBOXONE	0
+#define RTM_PLATFORM_EMSCRIPTEN	0
+#define RTM_PLATFORM_SWITCH		0
 
 //--------------------------------------------------------------------------
 /// Compilers
@@ -38,6 +39,7 @@
 #define RTM_CPU_PPC				0
 #define RTM_CPU_ARM				0
 #define RTM_CPU_MIPS			0
+#define RTM_CPU_JIT				0
 
 //--------------------------------------------------------------------------
 /// Endianess
@@ -60,38 +62,38 @@
 
 #ifdef RTM_DEBUG_BUILD
 #undef	RTM_DEBUG
-#define	RTM_DEBUG 1
+#define	RTM_DEBUG				1
 #endif
 
 #ifdef RTM_RELEASE_BUILD
 #undef	RTM_RELEASE
-#define	RTM_RELEASE 1
+#define	RTM_RELEASE				1
 #endif
 
 #ifdef RTM_RETAIL_BUILD
 #undef	RTM_RETAIL
-#define	RTM_RETAIL 1
+#define	RTM_RETAIL				1
 #endif
 
 //--------------------------------------------------------------------------
 /// Detect compiler
 //--------------------------------------------------------------------------
 #if defined(__SNC__)
-#undef RTM_COMPILER_SNC
-#define RTM_COMPILER_SNC		1
-
-#elif defined(__GNUC__)
-#undef RTM_COMPILER_GCC
-#define RTM_COMPILER_GCC		1
+#undef	RTM_COMPILER_SNC
+#define	RTM_COMPILER_SNC		1
 
 // check for clang before GCC as clang defines GNU macros as well
 #elif defined(__clang__)
-#undef RTM_COMPILER_CLANG
-#define RTM_COMPILER_CLANG		1
+#undef	RTM_COMPILER_CLANG
+#define	RTM_COMPILER_CLANG		1
+
+#elif defined(__GNUC__)
+#undef	RTM_COMPILER_GCC
+#define	RTM_COMPILER_GCC		1
 
 #elif defined(_MSC_VER)
-#undef RTM_COMPILER_MSVC
-#define RTM_COMPILER_MSVC		1
+#undef	RTM_COMPILER_MSVC
+#define	RTM_COMPILER_MSVC		1
 
 #else
 #error "Compiler not supported!"
@@ -100,35 +102,38 @@
 //--------------------------------------------------------------------------
 /// Detect platform
 //--------------------------------------------------------------------------
-#if defined(_XBOX_VER)
-#undef  RTM_PLATFORM_XBOX360
-#define RTM_PLATFORM_XBOX360	1
-#elif defined(_DURANGO) || defined(_XBOX_ONE)
+#if defined(_DURANGO) || defined(_XBOX_ONE)
 #undef  RTM_PLATFORM_XBOXONE
-#define RTM_PLATFORM_XBOXONE	1
+#define RTM_PLATFORM_XBOXONE		1
 #elif defined(_WIN32) || defined(_WIN64) || defined(__WINDOWS__)
 #if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
 #undef  RTM_PLATFORM_WINDOWS
-#define RTM_PLATFORM_WINDOWS	1
+#define RTM_PLATFORM_WINDOWS		1
 #else
 #undef  RTM_PLATFORM_WINRT
-#define RTM_PLATFORM_WINRT		1
+#define RTM_PLATFORM_WINRT			1
 #endif
 #elif defined(__ANDROID__)
-#undef RTM_PLATFORM_ANDROID
-#define RTM_PLATFORM_ANDROID	1
+#undef	RTM_PLATFORM_ANDROID
+#define RTM_PLATFORM_ANDROID		1
 #elif defined(__linux__) || defined(linux)
-#undef RTM_PLATFORM_LINUX
-#define RTM_PLATFORM_LINUX		1
+#undef	RTM_PLATFORM_LINUX
+#define RTM_PLATFORM_LINUX			1
 #elif defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__)
 #undef  RTM_PLATFORM_IOS
-#define RTM_PLATFORM_IOS		1
+#define RTM_PLATFORM_IOS			1
 #elif defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__)
 #undef  RTM_PLATFORM_OSX
-#define RTM_PLATFORM_OSX		1
+#define RTM_PLATFORM_OSX			1
 #elif defined(__ORBIS__)
-#undef RTM_PLATFORM_PS4
-#define RTM_PLATFORM_PS4		1
+#undef	RTM_PLATFORM_PS4
+#define RTM_PLATFORM_PS4			1
+#elif defined(__EMSCRIPTEN__)
+#undef  RTM_PLATFORM_EMSCRIPTEN
+#define RTM_PLATFORM_EMSCRIPTEN		1
+#elif defined(__NINTENDO__)
+#undef	RTM_PLATFORM_SWITCH
+#define	RTM_PLATFORM_SWITCH			1
 #else
 #error "Platform not supported!"
 #endif
@@ -138,27 +143,33 @@
 							RTM_PLATFORM_ANDROID	|| \
 							RTM_PLATFORM_IOS		|| \
 							RTM_PLATFORM_PS4		|| \
+							RTM_PLATFORM_EMSCRIPTEN	|| \
+							RTM_PLATFORM_SWITCH		|| \
 							0)
 
 //--------------------------------------------------------------------------
 /// Detect CPU
 //--------------------------------------------------------------------------
 #if defined(__arm__) ||  defined(__aarch64__) || defined(_M_ARM) 
-#undef  RTM_CPU_ARM
-#define RTM_CPU_ARM				1
-#define RTM_CACHE_LINE_SIZE		64
+#undef	RTM_CPU_ARM
+#define	RTM_CPU_ARM				1
+#define	RTM_CACHE_LINE_SIZE		64
 #elif defined(__MIPSEL__) || defined(__mips_isa_rev)
-#undef  RTM_CPU_MIPS
-#define RTM_CPU_MIPS			1
-#define RTM_CACHE_LINE_SIZE		64
+#undef	RTM_CPU_MIPS
+#define	RTM_CPU_MIPS			1
+#define	RTM_CACHE_LINE_SIZE		64
 #elif defined(_M_PPC) || defined(__powerpc__) || defined(__powerpc64__) || defined(__PPU__)
-#undef  RTM_CPU_PPC
-#define RTM_CPU_PPC				1
-#define RTM_CACHE_LINE_SIZE		128
+#undef	RTM_CPU_PPC
+#define	RTM_CPU_PPC				1
+#define	RTM_CACHE_LINE_SIZE		128
 #elif defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
-#undef  RTM_CPU_X86
-#define RTM_CPU_X86				1
-#define RTM_CACHE_LINE_SIZE		64
+#undef	RTM_CPU_X86
+#define	RTM_CPU_X86				1
+#define	RTM_CACHE_LINE_SIZE		64
+#elif RTM_PLATFORM_EMSCRIPTEN
+#undef	RTM_CPU_JIT
+#define	RTM_CPU_JIT				1
+#define	RTM_CACHE_LINE_SIZE		64	// common
 #else
 #error "Platform not supported!"
 #endif
@@ -167,11 +178,11 @@
 /// Detect endianess
 //--------------------------------------------------------------------------
 #if RTM_CPU_PPC
-#undef RTM_BIG_ENDIAN
-#define RTM_BIG_ENDIAN			1
+#undef	RTM_BIG_ENDIAN
+#define	RTM_BIG_ENDIAN			1
 #else
-#undef RTM_LITTLE_ENDIAN
-#define RTM_LITTLE_ENDIAN		1
+#undef	RTM_LITTLE_ENDIAN
+#define	RTM_LITTLE_ENDIAN		1
 #endif
 
 //--------------------------------------------------------------------------
@@ -179,11 +190,11 @@
 //--------------------------------------------------------------------------
 
 #if (defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64) || defined(__ppc64__) || defined(_WIN64) || defined(__LP64__) || defined(_LP64) )
-#undef RTM_64BIT
-#define RTM_64BIT 1
+#undef	RTM_64BIT
+#define	RTM_64BIT 1
 #else
-#undef RTM_32BIT
-#define RTM_32BIT 1
+#undef	RTM_32BIT
+#define	RTM_32BIT 1
 #endif
 
 //--------------------------------------------------------------------------
@@ -228,7 +239,7 @@
 
 #if RTM_COMPILER_MSVC
 #define RTM_BREAK	__debugbreak()
-#elif RTM_CPU_ARM
+#elif RTM_CPU_ARM && !RTM_PLATFORM_SWITCH
 #define RTM_BREAK	asm("bkpt 0")
 #elif RTM_CPU_X86 && (RTM_COMPILER_GCC || RTM_COMPILER_CLANG)
 #define RTM_BREAK	__asm__ ("int $3")
@@ -289,16 +300,17 @@ namespace rtm {
 
 } // namespace rtm
 
-struct rtmLibInterface
+typedef struct _rtmLibInterface
 {
 	rtm::MemoryManager*	m_memory;
 	rtm::ErrorHandler*	m_error;
 
-	rtmLibInterface()
+	_rtmLibInterface()
 		: m_memory(0)
 		, m_error(0)
 	{}
-};
+
+} rtmLibInterface;
 
 //--------------------------------------------------------------------------
 /// Utility

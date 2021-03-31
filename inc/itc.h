@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2017 Milos Tosic. All Rights Reserved.                   ///
+/// Copyright (c) 2019 Milos Tosic. All Rights Reserved.                   ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -10,7 +10,6 @@
 #include <rbase/inc/semaphore.h>
 #include <string.h> // memcpy
 #include <math.h>
-#include <atomic>
 
 namespace rtm {
 

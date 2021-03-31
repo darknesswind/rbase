@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------//
 
@@ -123,14 +123,16 @@ namespace RBASE_NAMESPACE {
 #ifndef RTM_RBASE_LIBHANDLER_MEMORY_H
 #define RTM_RBASE_LIBHANDLER_MEMORY_H
 
-	#include <new> // placement new
-
+	struct rtmAllocTag { enum Enum { Tag }; };
+	inline void* operator new (size_t, void* _mem, rtmAllocTag::Enum) { return _mem; }
+	inline void operator delete (void*, void*, rtmAllocTag::Enum) { }
+	
 	template <typename T>
 	T* rtm_new()
 	{
 		void* mem = RBASE_NAMESPACE::rtm_alloc(sizeof(T));
 		RTM_ASSERT(mem != 0, "Failed to allocate memory!");
-		return new(mem) T();
+		return new(mem, rtmAllocTag::Tag) T();
 	}
 
 	template <typename T, typename Arg1>
@@ -138,7 +140,7 @@ namespace RBASE_NAMESPACE {
 	{
 		void* mem = RBASE_NAMESPACE::rtm_alloc(sizeof(T));
 		RTM_ASSERT(mem != 0, "Failed to allocate memory!");
-		return new(mem) T(_arg1);
+		return new(mem, rtmAllocTag::Tag) T(_arg1);
 	}
 
 	template <typename T, typename Arg1, typename Arg2>
@@ -146,7 +148,7 @@ namespace RBASE_NAMESPACE {
 	{
 		void* mem = RBASE_NAMESPACE::rtm_alloc(sizeof(T));
 		RTM_ASSERT(mem != 0, "Failed to allocate memory!");
-		return new(mem) T(_arg1, _arg2);
+		return new(mem, rtmAllocTag::Tag) T(_arg1, _arg2);
 	}
 
 	template <typename T, typename Arg1, typename Arg2, typename Arg3>
@@ -154,7 +156,7 @@ namespace RBASE_NAMESPACE {
 	{
 		void* mem = RBASE_NAMESPACE::rtm_alloc(sizeof(T));
 		RTM_ASSERT(mem != 0, "Failed to allocate memory!");
-		return new(mem) T(_arg1, _arg2, _arg3);
+		return new(mem, rtmAllocTag::Tag) T(_arg1, _arg2, _arg3);
 	}
 
 	template <typename T>
@@ -165,7 +167,7 @@ namespace RBASE_NAMESPACE {
 		T* p = (T*)mem;
 		while (_numItems--)
 		{
-			new(p) T();
+			new(p, rtmAllocTag::Tag) T();
 			++p;
 		}
 		return (T*)mem;
@@ -179,7 +181,7 @@ namespace RBASE_NAMESPACE {
 		T* p = (T*)mem;
 		while (_numItems--)
 		{
-			new(p) T(_arg1);
+			new(p, rtmAllocTag::Tag) T(_arg1);
 			++p;
 		}
 		return (T*)mem;
@@ -193,7 +195,7 @@ namespace RBASE_NAMESPACE {
 		T* p = (T*)mem;
 		while (_numItems--)
 		{
-			new(p) T(_arg1, _arg2);
+			new(p, rtmAllocTag::Tag) T(_arg1, _arg2);
 			++p;
 		}
 		return (T*)mem;
@@ -207,7 +209,7 @@ namespace RBASE_NAMESPACE {
 		T* p = (T*)mem;
 		while (_numItems--)
 		{
-			new(p) T(_arg1, _arg2, _arg3);
+			new(p, rtmAllocTag::Tag) T(_arg1, _arg2, _arg3);
 			++p;
 		}
 		return (T*)mem;
@@ -233,9 +235,6 @@ namespace RBASE_NAMESPACE {
 	}
 
 	// STL allocator
-#if !RTM_COMPILER_MSVC
-	#include <utility> // std::forward
-#endif // !RTM_COMPILER_MSVC
 
 	template<typename T>
 	struct rtm_pointer_traits
@@ -264,11 +263,6 @@ namespace RBASE_NAMESPACE {
 		size_type max_size() const { return (size_type)INT32_MAX; }
 		T * allocate(size_t _numBlocks, const void* = 0) { return (value_type*)RBASE_NAMESPACE::rtm_alloc(sizeof(T) * _numBlocks); }
 		void deallocate(T* _ptr, size_t) { RBASE_NAMESPACE::rtm_free(_ptr); }
-#if !RTM_COMPILER_MSVC
-		template <class... Args>
-		void construct(T* _ptr, Args&&... args) { ::new((void*)_ptr) T(std::forward<Args>(args)...); }
-		void destroy(T* _ptr)                    { _ptr->~T(); }
-#endif // !RTM_COMPILER_MSVC
 	};
 
 	template <class T, class U>	/*constexpr*/ bool operator==(const rtm_allocator<T>&, const rtm_allocator<U>&) { return true; }
@@ -292,7 +286,6 @@ namespace RBASE_NAMESPACE {
 	#include <string>
 	typedef std::basic_string<char, std::char_traits<char>, rtm_allocator<char> >			rtm_string;
 	typedef std::basic_string<wchar_t, std::char_traits<wchar_t>, rtm_allocator<wchar_t> >	rtm_wstring;
-
 #endif // RTM_DEFINE_STL_STRING
 
 #ifdef RTM_DEFINE_STL_VECTOR

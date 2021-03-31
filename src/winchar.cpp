@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------//
-/// Copyright (c) 2018 by Milos Tosic. All Rights Reserved.                ///
+/// Copyright (c) 2019 by Milos Tosic. All Rights Reserved.                ///
 /// License: http://www.opensource.org/licenses/BSD-2-Clause               ///
 //--------------------------------------------------------------------------// 
 
@@ -41,7 +41,7 @@ static char* makeLongPath(const char* _path, const char* _name, char* _outBuff, 
 	const int32_t outBuffSize = (int32_t)_outBuffSize;
 
 	const char* longPathPrefix = "\\\\?\\";
-	strlncpy(_outBuff, outBuffSize, longPathPrefix);
+	strlCpy(_outBuff, outBuffSize, longPathPrefix);
 
 	int additionChars = S_LONG_PATH_LEN;
 	if (_path)
@@ -50,17 +50,17 @@ static char* makeLongPath(const char* _path, const char* _name, char* _outBuff, 
 		{
 			// UNC path -
 			additionChars = S_LONG_PATH_UNC_LEN;
-			strlncat(_outBuff, outBuffSize, "UNC");
-			strlncat(_outBuff, outBuffSize, _path);
+			strlCat(_outBuff, outBuffSize, "UNC");
+			strlCat(_outBuff, outBuffSize, _path);
 		}
 		else
-			strlncat(_outBuff, outBuffSize, _path);
+			strlCat(_outBuff, outBuffSize, _path);
 	}
 
 	if (_name)
-		strlncat(_outBuff, outBuffSize, _name);
+		strlCat(_outBuff, outBuffSize, _name);
 
-	size_t pathLength = strlen(_outBuff);
+	size_t pathLength = strLen(_outBuff);
 	if (pathLength - additionChars > MAX_PATH)
 	{
 		replaceSlashes(_outBuff, '/');
@@ -75,20 +75,21 @@ static char* makeLongPath(const char* _path, const char* _name, char* _outBuff, 
 
 MultiToWide::MultiToWide(const char* _string, bool _path)
 {
-	m_ptr = &m_string[0];
-	*m_ptr = 0;
+	m_size	= 0;
+	m_ptr	= &m_string[0];
+	*m_ptr	= 0;
 
 	if (!_string)
 		return;
 
-	size_t strLen = strlen(_string) + S_LONG_PATH_UNC_LEN + 2; // 2: last slash and null term
+	size_t sLen = strLen(_string) + S_LONG_PATH_UNC_LEN + 2; // 2: last slash and null term
 	char* tmpBuff = 0;
 
 	const char* pathToConvert = _string;
 	if (_path)
 	{
-		tmpBuff = new char[strLen];
-		pathToConvert = makeLongPath(_string, 0, tmpBuff, strLen);
+		tmpBuff = new char[sLen];
+		pathToConvert = makeLongPath(_string, 0, tmpBuff, sLen);
 	}
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, pathToConvert, -1, NULL, 0);
@@ -97,7 +98,7 @@ MultiToWide::MultiToWide(const char* _string, bool _path)
 	else
 		m_ptr = &m_string[0];
 
-	MultiByteToWideChar(CP_UTF8, 0, pathToConvert, -1, m_ptr, size_needed);
+	m_size = MultiByteToWideChar(CP_UTF8, 0, pathToConvert, -1, m_ptr, size_needed);
 
 	if (_path)
 		delete[] tmpBuff;
@@ -111,7 +112,8 @@ MultiToWide::~MultiToWide()
 
 WideToMulti::WideToMulti(const wchar_t* _string)
 {
-	m_ptr = &m_string[0];
+	m_size		= 0;
+	m_ptr		= &m_string[0];
 	m_string[0] = 0;
 
 	if (!_string)
@@ -123,7 +125,7 @@ WideToMulti::WideToMulti(const wchar_t* _string)
 	else
 		m_ptr = &m_string[0];
 
-	WideCharToMultiByte(CP_UTF8, 0, _string, -1, m_ptr, size_needed, NULL, NULL);
+	m_size = WideCharToMultiByte(CP_UTF8, 0, _string, -1, m_ptr, size_needed, NULL, NULL);
 }
 
 WideToMulti::~WideToMulti()
